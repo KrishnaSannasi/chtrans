@@ -1,5 +1,6 @@
 use crate::{*, slots::*, hlist::*};
 use typenum::{Unsigned, consts::*};
+use core::mem::MaybeUninit;
 use core::num::*;
 
 macro_rules! primitive {
@@ -109,6 +110,13 @@ type_array! {
     U32,
 }
 
+unsafe impl<T: Type> Type for MaybeUninit<T>
+where
+    MaybeUninit<T::Repr>: Representation
+{
+    type Repr = MaybeUninit<T::Repr>;
+}
+
 unsafe impl<T> Type for *const T {
     type Repr = PointerRepr;
 }
@@ -137,6 +145,15 @@ impl<T> Representation for &T {
     type Align = PointerAlign;
     #[allow(clippy::type_complexity)]
     type Slots = Appended<Repeated<Init, PointerSize>, HList!(Markers<HList!(NonZero<PointerNext>, Self)>)>;
+}
+
+impl<T: Representation> Representation for MaybeUninit<T>
+where
+    Uninit: Repeat<slots::Size<T::Slots>>,
+    Repeated<Uninit, slots::Size<T::Slots>>: SlotList,
+{
+    type Align = T::Align;
+    type Slots = Repeated<Uninit, slots::Size<T::Slots>>;
 }
 
 impl<T> Representation for &mut T {
