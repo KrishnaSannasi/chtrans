@@ -1,5 +1,4 @@
 use super::*;
-use crate::hlist::{Append, Appended};
 
 pub struct Struct<Repr, F> {
     _repr: Repr,
@@ -49,12 +48,11 @@ impl<Repr, Align> Pad<Repr, Align> for Nil {
 
 impl<Align, P, T> Pad<ReprC, Align> for Cons<P, T>
 where
-    Self: SlotList + Append<Repeated<Uninit, Mod<Align::Output, Align>>>,
+    Self: SlotList + Push<Uninit, Mod<Align::Output, Align>>,
+    slots::Size<Self>: Rem<Align>,
     Align: PowerOfTwo + Sub<Mod<slots::Size<Self>, Align>>,
     Align::Output: Rem<Align>,
-    slots::Size<Self>: Rem<Align>,
-    Uninit: Repeat<Mod<Align::Output, Align>>,
-    Appended<Self, Repeated<Uninit, Mod<Align::Output, Align>>>: SlotList,
+    PushTo<Self, Uninit, Mod<Align::Output, Align>>: SlotList,
 {
-    type Output = Appended<Self, Repeated<Uninit, Mod<Align::Output, Align>>>;
+    type Output = PushTo<Self, Uninit, Mod<Align::Output, Align>>;
 }

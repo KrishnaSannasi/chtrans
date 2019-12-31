@@ -30,25 +30,9 @@ pub trait Repeat<N> {
 
 impl<T, N> Repeat<N> for T
 where
-    N: Unsigned + IsEqual<U0>,
-    T: RepeatImpl<N, Eq<N, U0>>,
+    Nil: Push<T, N>,
 {
-    type Output = T::ImplOutput;
-}
-
-pub trait RepeatImpl<N, IsZero> {
-    type ImplOutput;
-}
-
-impl<T, N: Unsigned + IsEqual<U1> + Sub<U1>> RepeatImpl<N, B0> for T
-where
-    T: RepeatImpl<Diff<N, U1>, Eq<N, U1>>,
-{
-    type ImplOutput = Cons<T::ImplOutput, T>;
-}
-
-impl<T> RepeatImpl<U0, B1> for T {
-    type ImplOutput = Nil;
+    type Output = PushTo<Nil, T, N>;
 }
 
 pub type Appended<A, B> = <A as Append<B>>::Output;
@@ -56,26 +40,15 @@ pub trait Append<T> {
     type Output;
 }
 
-pub trait AppendTo<T> {
-    type Output;
-}
-
-impl<L, T> Append<L> for T
-where
-    L: AppendTo<Self>,
-{
-    type Output = L::Output;
-}
-
-impl<L> AppendTo<L> for Nil {
+impl<L> Append<Nil> for L {
     type Output = L;
 }
 
-impl<L, R, T> AppendTo<L> for Cons<R, T>
+impl<L, P, T> Append<Cons<P, T>> for L
 where
-    R: AppendTo<L>,
+    L: Append<P>,
 {
-    type Output = Cons<R::Output, T>;
+    type Output = Cons<Appended<L, P>, T>;
 }
 
 pub type CycleL<L, N> = <L as Cycle<N>>::Output;
@@ -106,4 +79,35 @@ where
     CycleL<T, N::Output>: Append<T>,
 {
     type ImplOutput = Appended<CycleL<T, N::Output>, T>;
+}
+
+pub type PushTo<L, T, N> = <L as Push<T, N>>::Output;
+pub trait Push<T, N> {
+    type Output;
+}
+
+impl<T, N, L> Push<T, N> for L
+where
+    N: IsEqual<U0>,
+    L: ImplPush<T, N, Eq<N, U0>>,
+{
+    type Output = L::ImplOutput;
+}
+
+pub trait ImplPush<T, N, IsZero> {
+    type ImplOutput;
+}
+
+impl<L, T> ImplPush<T, U0, B1> for L {
+    type ImplOutput = Self;
+}
+
+impl<L, T, N> ImplPush<T, N, B0> for L
+where
+    N: Sub<U1>,
+    N: IsEqual<U1>,
+    Self: ImplPush<T, Diff<N, U1>, Eq<N, U1>>,
+{
+    #[allow(clippy::type_complexity)]
+    type ImplOutput = Cons<<Self as ImplPush<T, Diff<N, U1>, Eq<N, U1>>>::ImplOutput, T>;
 }
