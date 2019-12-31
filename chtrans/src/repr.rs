@@ -29,6 +29,9 @@ pub type Padded<Repr, T, Align> = <T as Pad<Repr, Align>>::Output;
 /// 
 /// You can use [`Padded<Self, Repr, Align>`](crate::repr::Padded) to easily get the output
 pub trait Pad<Repr, Align> {
+    /// The padded slot list
+    /// 
+    /// Guaranteed to be padded to `Align`
     type Output: SlotList;
 }
 

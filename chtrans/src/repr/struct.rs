@@ -43,17 +43,21 @@ use super::*;
 /// The representation of structs
 /// 
 /// see module docs for details
-pub struct Struct<Repr, F> {
+pub struct Struct<Repr, MinAlign, F> {
     _repr: Repr,
-    _fields: F
+    _fields: F,
+    _min_align: MinAlign,
 }
 
-impl<Repr, F> crate::Representation for Struct<Repr, F>
+impl<Repr, MinAlign, F> crate::Representation for Struct<Repr, MinAlign, F>
 where
+    MinAlign: PowerOfTwo,
     F: StructFieldList<Repr>,
     F::Slots: Pad<Repr, F::Align>,
+    F::Align: Max<MinAlign>,
+    Maximum<F::Align, MinAlign>: PowerOfTwo
 {
-    type Align = F::Align;
+    type Align = Maximum<F::Align, MinAlign>;
     type Slots = Padded<Repr, F::Slots, F::Align>;
 }
 
@@ -62,6 +66,7 @@ where
 /// 
 /// to see the algorithm, see module docs
 pub trait StructFieldList<Repr> {
+    /// The alignment of this type
     type Align: PowerOfTwo;
     type Slots: SlotList;
 }
