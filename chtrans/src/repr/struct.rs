@@ -1,5 +1,46 @@
+
+//! The specification for struct memory layout
+//! 
+//! A representation can be chosen, one of [`ReprC`](crate::repr::ReprC) or [`ReprPacked`](crate::repr::ReprPacked).
+//! 
+//! If `ReprC` is picked, then fields are laid out in order, with the following algorithm:
+//! 
+//! ```rust
+//! # struct Field { align: usize }
+//! # #[derive(Clone, Copy)] enum Slot { Uninit }
+//! # impl Field { fn slots(&self) -> impl Iterator<Item = Slot> { std::iter::empty() } }
+//! # fn c_layout(fields: &[Field]) -> Vec<Slot> {
+//! let mut memory = Vec::<Slot>::new();
+//! for field in fields {
+//!     let offset = memory.len();
+//!     let padding = field.align - offset % field.align;
+//!     memory.extend(repeat(Slot::Uninit, padding));
+//!     memory.extend(field.slots());
+//! }
+//! return memory;
+//! # }
+//! ```
+//! 
+//! If `ReprPacked` is picked, then fields are laid out in order, with the following algorithm:
+//! 
+//! ```rust
+//! # struct Field { align: usize }
+//! # #[derive(Clone, Copy)] enum Slot { Uninit }
+//! # impl Field { fn slots(&self) -> impl Iterator<Item = Slot> { std::iter::empty() } }
+//! # fn c_layout(fields: &[Field]) -> Vec<Slot> {
+//! let mut memory = Vec::<Slot>::new();
+//! for field in fields {
+//!     memory.extend(field.slots());
+//! }
+//! return memory;
+//! # }
+//! ```
+
 use super::*;
 
+/// The representation of structs
+/// 
+/// see module docs for details
 pub struct Struct<Repr, F> {
     _repr: Repr,
     _fields: F
@@ -34,25 +75,4 @@ where
 {
     type Align = Maximum<P::Align, crate::Align<T>>;
     type Slots = Appended<Padded<Repr, P::Slots, crate::Align<T>>, crate::Slots<T>>;
-}
-
-pub type Padded<Repr, T, Align> = <T as Pad<Repr, Align>>::Output;
-
-pub trait Pad<Repr, Align> {
-    type Output: SlotList;
-}
-
-impl<Repr, Align> Pad<Repr, Align> for Nil {
-    type Output = Nil;
-}
-
-impl<Align, P, T> Pad<ReprC, Align> for Cons<P, T>
-where
-    Self: SlotList + Push<Uninit, Mod<Align::Output, Align>>,
-    slots::Size<Self>: Rem<Align>,
-    Align: PowerOfTwo + Sub<Mod<slots::Size<Self>, Align>>,
-    Align::Output: Rem<Align>,
-    PushTo<Self, Uninit, Mod<Align::Output, Align>>: SlotList,
-{
-    type Output = PushTo<Self, Uninit, Mod<Align::Output, Align>>;
 }

@@ -19,7 +19,7 @@ use core::ops::Add;
 /// The size of a [`SlotList`](crate::slots::SlotList)
 pub type Size<L> = <L as SlotList>::Size;
 
-/// Either an [`Init`](crate::slots::Init), [`Uninit`](crate::slots::Uninit), [`Marker`](crate::slots::Marker::Marker)
+/// Either an [`Init`](crate::slots::Init), [`Uninit`](crate::slots::Uninit), [`Marker`](crate::slots::Marker)
 /// 
 /// see [module](crate::slots) docs for details
 pub trait Slot {
@@ -44,7 +44,7 @@ pub trait SlotList {
 /// [`NonZero<N>`](crate::slots::NonZero) see type docs
 pub trait Marker {}
 
-/// A linked list of [`Marker`](crate::slots::Marker::Marker)s
+/// A linked list of [`Marker`](crate::slots::Marker)s
 pub trait MarkerList {}
 
 impl SlotList for Nil {
