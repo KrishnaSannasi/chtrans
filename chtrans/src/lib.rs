@@ -225,10 +225,19 @@ pub type Slots<T> = <Repr<T> as Representation>::Slots;
 pub type Align<T> = <Repr<T> as Representation>::Align;
 pub type Size<T> = slots::Size<Slots<T>>;
 
+/// A type which takes in in `Reinterpret`
+/// 
+/// All types that do so are considered `transparent`.
+/// They should not have additional invariants beyond
+/// the normal validity invariants.
+// TODO: implement `TryReinterpret` to allow for other invariants
 pub unsafe trait Type {
     type Repr: Representation;
 }
 
+/// A high level representation of a type, this encodes the alignment,
+/// fields, and how the memory layout should be computed. See 
+/// [`repr`](crate::repr) for details
 pub trait Representation {
     type Slots: slots::SlotList;
     type Align: typenum::marker_traits::PowerOfTwo;
@@ -251,6 +260,7 @@ pub trait Reinterpret: Sized + Type {
     fn reinterp_as<T>(&self) -> &T
     where
         T: Type,
+        Align<T>: typenum::IsGreaterOrEqual<Align<Self>, Output = typenum::B1>,
         Slots<T>: self::compat::CanConvertFrom<Slots<Self>>
     {
         #[allow(clippy::transmute_ptr_to_ptr)]
@@ -261,6 +271,7 @@ pub trait Reinterpret: Sized + Type {
     fn reinterp_as_mut<T>(&mut self) -> &mut T
     where
         T: Type,
+        Align<T>: typenum::IsGreaterOrEqual<Align<Self>, Output = typenum::B1>,
         Slots<T>: self::compat::CanConvertFrom<Slots<Self>>
     {
         #[allow(clippy::transmute_ptr_to_ptr)]
