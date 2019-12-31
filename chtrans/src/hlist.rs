@@ -59,26 +59,9 @@ pub trait Cycle<N> {
 impl<T, N> Cycle<N> for T
 where
     N: IsEqual<U0>,
-    T: ImplCycle<N, Eq<N, U0>>,
+    T: private::ImplCycle<N, Eq<N, U0>>,
 {
     type Output = T::ImplOutput;
-}
-
-pub trait ImplCycle<N, IsZero> {
-    type ImplOutput;
-}
-
-impl<T> ImplCycle<U0, B1> for T {
-    type ImplOutput = Nil;
-}
-
-impl<T, N> ImplCycle<N, B0> for T
-where
-    N: Sub<U1>,
-    T: Cycle<N::Output>,
-    CycleL<T, N::Output>: Append<T>,
-{
-    type ImplOutput = Appended<CycleL<T, N::Output>, T>;
 }
 
 pub type PushTo<L, T, N> = <L as Push<T, N>>::Output;
@@ -89,25 +72,46 @@ pub trait Push<T, N> {
 impl<T, N, L> Push<T, N> for L
 where
     N: IsEqual<U0>,
-    L: ImplPush<T, N, Eq<N, U0>>,
+    L: private::ImplPush<T, N, Eq<N, U0>>,
 {
     type Output = L::ImplOutput;
 }
 
-pub trait ImplPush<T, N, IsZero> {
-    type ImplOutput;
-}
+mod private {
+    use super::*;
 
-impl<L, T> ImplPush<T, U0, B1> for L {
-    type ImplOutput = Self;
-}
+    pub trait ImplCycle<N, IsZero> {
+        type ImplOutput;
+    }
+    
+    impl<T> ImplCycle<U0, B1> for T {
+        type ImplOutput = Nil;
+    }
+    
+    impl<T, N> ImplCycle<N, B0> for T
+    where
+        N: Sub<U1>,
+        T: Cycle<N::Output>,
+        CycleL<T, N::Output>: Append<T>,
+    {
+        type ImplOutput = Appended<CycleL<T, N::Output>, T>;
+    }
+    
+    pub trait ImplPush<T, N, IsZero> {
+        type ImplOutput;
+    }
 
-impl<L, T, N> ImplPush<T, N, B0> for L
-where
-    N: Sub<U1>,
-    N: IsEqual<U1>,
-    Self: ImplPush<T, Diff<N, U1>, Eq<N, U1>>,
-{
-    #[allow(clippy::type_complexity)]
-    type ImplOutput = Cons<<Self as ImplPush<T, Diff<N, U1>, Eq<N, U1>>>::ImplOutput, T>;
+    impl<L, T> ImplPush<T, U0, B1> for L {
+        type ImplOutput = Self;
+    }
+
+    impl<L, T, N> ImplPush<T, N, B0> for L
+    where
+        N: Sub<U1>,
+        N: IsEqual<U1>,
+        Self: ImplPush<T, Diff<N, U1>, Eq<N, U1>>,
+    {
+        #[allow(clippy::type_complexity)]
+        type ImplOutput = Cons<<Self as ImplPush<T, Diff<N, U1>, Eq<N, U1>>>::ImplOutput, T>;
+    }
 }
