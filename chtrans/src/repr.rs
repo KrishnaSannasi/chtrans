@@ -24,7 +24,7 @@ pub trait Pad<Repr, Align> {
     type Output: SlotList;
 }
 
-impl<Repr, Align> Pad<Repr, Align> for Nil {
+impl<Align> Pad<ReprC, Align> for Nil {
     type Output = Nil;
 }
 
@@ -37,4 +37,8 @@ where
     PushTo<Self, Uninit, Mod<Align::Output, Align>>: SlotList,
 {
     type Output = PushTo<Self, Uninit, Mod<Align::Output, Align>>;
+}
+
+impl<Align, L: SlotList> Pad<ReprPacked, Align> for L {
+    type Output = L;
 }
