@@ -1,4 +1,17 @@
 
+//! Type level linked lists
+//! 
+//! # `chtrans::hlist`
+//! 
+//! Linked lists are represented by a cons list,
+//! 
+//! In `Cons<P, T>`, `P` is the rest of the list, and `T` is the current element
+//! `Nil` represents the end of the list.
+//! 
+//! There are a few helper traits to make working with linked lists easier.
+//! Each trait comes with a type alias that gets the output
+//! 
+
 #[macro_export]
 macro_rules! HList {
     () => { $crate::hlist::Nil };
@@ -23,7 +36,14 @@ pub struct Cons<P, T> {
 
 pub enum Nil {}
 
+/// Gets the output of [`Repeat`](crate::hlist::Repeat)
 pub type Repeated<T, N> = <T as Repeat<N>>::Output;
+
+/// The appends the value `Self` to the end of empty list `N` times
+/// 
+/// You can easily access `Output` using [`Repeated<Self, N>`](crate::hlist::Repeated)
+/// 
+/// For example `Repeated<u32, U3>` yields `HList!(u32, u32, u32)`
 pub trait Repeat<N> {
     type Output;
 }
@@ -35,7 +55,14 @@ where
     type Output = PushTo<Nil, T, N>;
 }
 
+/// Gets the output of [`Append`](crate::hlist::Append)
 pub type Appended<A, B> = <A as Append<B>>::Output;
+
+/// The appends linked list `T` to the end of linked list `Self`
+/// 
+/// You can easily access `Output` using [`Appended<Self, T>`](crate::hlist::Appended)
+/// 
+/// For example, `Appended<HList!(u32, i32), HList!(f32, bool)>` yields `HList!(u32, i32, f32, bool)`
 pub trait Append<T> {
     type Output;
 }
@@ -51,7 +78,15 @@ where
     type Output = Cons<Appended<L, P>, T>;
 }
 
+/// Gets the output of [`Cyclic`](crate::hlist::Cyclic)
 pub type Cycle<L, N> = <L as Cyclic<N>>::Output;
+
+/// This appends the linked list `A` `N` times to the empty list,
+/// where `N` is an unsigned integer (typenum).
+/// 
+/// You can easily access `Output` using [`Cycle<Self, N>`](crate::hlist::Cycle)
+/// 
+/// For example `Cycle<HList!(u32, i32), U3>` yields `HList!(u32, i32, u32, i32, u32, i32)`
 pub trait Cyclic<N> {
     type Output;
 }
@@ -64,7 +99,15 @@ where
     type Output = T::ImplOutput;
 }
 
+/// Get the output of [`Push`](crate::hlist::Push)
 pub type PushTo<L, T, N> = <L as Push<T, N>>::Output;
+
+/// Pushes the value `T` onto the end of the list `N` times,
+/// where `N` is an unsigned integer (typenum).
+/// 
+/// You can easily access `Output` using [`PushTo<Self, T, N>`](crate::hlist::PushTo)
+/// 
+/// For example `PushTo<HList!(i32, f32), u32, U3>` yields `HList!(i32, f32, u32, u32, u32)`
 pub trait Push<T, N> {
     type Output;
 }
