@@ -6,6 +6,7 @@
 //! If `ReprC` is picked, then fields are laid out in order, with the following algorithm:
 //! 
 //! ```rust
+//! # use std::iter::repeat;
 //! # struct Field { align: usize }
 //! # #[derive(Clone, Copy)] enum Slot { Uninit }
 //! # impl Field { fn slots(&self) -> impl Iterator<Item = Slot> { std::iter::empty() } }
