@@ -1,5 +1,5 @@
 #![no_std]
-// #![forbid(missing_docs)]
+#![forbid(missing_docs)]
 
 //! This crate is heavily inspired by [typic](https://github.com/jswrenn/typic)
 //! 
@@ -189,6 +189,7 @@ pub mod repr;
 pub mod compat;
 mod ext;
 
+pub use typenum;
 pub use chtrans_derive::repr;
 
 /// Peano arithmetic plus 1

@@ -66,8 +66,10 @@ where
 /// 
 /// to see the algorithm, see module docs
 pub trait StructFieldList<Repr> {
-    /// The alignment of this type
+    /// The minimum alignment of this type
     type Align: PowerOfTwo;
+
+    /// The in memory representation of the type
     type Slots: SlotList;
 }
 
@@ -76,14 +78,23 @@ impl<Repr> StructFieldList<Repr> for Nil {
     type Slots = Self;
 }
 
-impl<Repr, P: StructFieldList<Repr>, T: Type> StructFieldList<Repr> for Cons<P, T>
+impl<P: StructFieldList<ReprC>, T: Type> StructFieldList<ReprC> for Cons<P, T>
 where
-    P::Slots: Pad<Repr, crate::Align<T>>,
-    Padded<Repr, P::Slots, crate::Align<T>>: Append<crate::Slots<T>>,
+    P::Slots: Pad<ReprC, crate::Align<T>>,
+    Padded<ReprC, P::Slots, crate::Align<T>>: Append<crate::Slots<T>>,
     P::Align: Max<crate::Align<T>>,
     Maximum<P::Align, crate::Align<T>>: PowerOfTwo,
-    Appended<Padded<Repr, P::Slots, crate::Align<T>>, crate::Slots<T>>: SlotList,
+    Appended<Padded<ReprC, P::Slots, crate::Align<T>>, crate::Slots<T>>: SlotList,
 {
     type Align = Maximum<P::Align, crate::Align<T>>;
-    type Slots = Appended<Padded<Repr, P::Slots, crate::Align<T>>, crate::Slots<T>>;
+    type Slots = Appended<Padded<ReprC, P::Slots, crate::Align<T>>, crate::Slots<T>>;
+}
+
+impl<P: StructFieldList<ReprPacked>, T: Type> StructFieldList<ReprPacked> for Cons<P, T>
+where
+    P::Slots: Append<crate::Slots<T>>,
+    Appended<P::Slots, crate::Slots<T>>: SlotList,
+{
+    type Align = U1;
+    type Slots = Appended<P::Slots, crate::Slots<T>>;
 }
