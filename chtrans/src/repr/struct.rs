@@ -15,7 +15,8 @@
 //! for field in fields {
 //!     let offset = memory.len();
 //!     let padding = field.align - offset % field.align;
-//!     memory.extend(repeat(Slot::Uninit, padding % field.align));
+//!     let padding = repeat(Slot::Uninit).take(padding % field.align);
+//!     memory.extend(padding);
 //!     memory.extend(field.slots());
 //! }
 //! return memory;
@@ -56,6 +57,10 @@ where
     type Slots = Padded<Repr, F::Slots, F::Align>;
 }
 
+/// A list of fields in a trait. All fields must be `Type`s and will be
+/// properly aligned with respect to `Repr`
+/// 
+/// to see the algorithm, see module docs
 pub trait StructFieldList<Repr> {
     type Align: PowerOfTwo;
     type Slots: SlotList;

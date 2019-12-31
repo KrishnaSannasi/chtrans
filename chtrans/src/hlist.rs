@@ -12,6 +12,10 @@
 //! Each trait comes with a type alias that gets the output
 //! 
 
+/// Syntactic sugar for creating linked lists
+/// 
+/// Use it like so, `HList!(i32, u32, f32)`
+/// Use it like so, you can also append to a linked list like so, `HList!(..List, i32, u32, f32)`
 #[macro_export]
 macro_rules! HList {
     () => { $crate::hlist::Nil };
@@ -29,11 +33,15 @@ macro_rules! HList {
 use typenum::{*, operator_aliases::{Eq, Diff}};
 use core::ops::Sub;
 
+/// The cons part of a linked list
+/// 
+/// This hold all previous elements (`P`) and the current element (`T`)
 pub struct Cons<P, T> {
     _prev: P,
     _next: T,
 }
 
+/// The empty list
 pub enum Nil {}
 
 /// Gets the output of [`Repeat`](crate::hlist::Repeat)
@@ -45,6 +53,7 @@ pub type Repeated<T, N> = <T as Repeat<N>>::Output;
 /// 
 /// For example `Repeated<u32, U3>` yields `HList!(u32, u32, u32)`
 pub trait Repeat<N> {
+    /// The output of repeat
     type Output;
 }
 
@@ -64,6 +73,7 @@ pub type Appended<A, B> = <A as Append<B>>::Output;
 /// 
 /// For example, `Appended<HList!(u32, i32), HList!(f32, bool)>` yields `HList!(u32, i32, f32, bool)`
 pub trait Append<T> {
+    /// The output of append
     type Output;
 }
 
@@ -88,6 +98,7 @@ pub type Cycle<L, N> = <L as Cyclic<N>>::Output;
 /// 
 /// For example `Cycle<HList!(u32, i32), U3>` yields `HList!(u32, i32, u32, i32, u32, i32)`
 pub trait Cyclic<N> {
+    /// The output of cyclic
     type Output;
 }
 
@@ -109,6 +120,7 @@ pub type PushTo<L, T, N> = <L as Push<T, N>>::Output;
 /// 
 /// For example `PushTo<HList!(i32, f32), u32, U3>` yields `HList!(i32, f32, u32, u32, u32)`
 pub trait Push<T, N> {
+    /// The output of push
     type Output;
 }
 

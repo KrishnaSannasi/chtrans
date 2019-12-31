@@ -18,8 +18,16 @@ pub enum ReprPacked {}
 
 pub mod r#struct;
 
+/// A helper to get the output of [`Pad`](crate::repr::Pad)
 pub type Padded<Repr, T, Align> = <T as Pad<Repr, Align>>::Output;
 
+/// Pads a type to the specified alignment using the specified representation
+/// 
+/// For example, with `ReprC`, `HList!(Init)` when aligned to `U4`, will produce `HList!(Init, Uninit, Uninit, Uninit)`
+/// 
+/// With `ReprPacked` this operation is a no-op.
+/// 
+/// You can use [`Padded<Self, Repr, Align>`](crate::repr::Padded) to easily get the output
 pub trait Pad<Repr, Align> {
     type Output: SlotList;
 }

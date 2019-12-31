@@ -1,4 +1,5 @@
 #![no_std]
+// #![forbid(missing_docs)]
 
 //! This crate is heavily inspired by [typic](https://github.com/jswrenn/typic)
 //! 
@@ -184,12 +185,15 @@
 pub mod hlist;
 pub mod slots;
 pub mod repr;
+#[doc(hidden)]
 pub mod compat;
 mod ext;
 
 pub use chtrans_derive::repr;
 
+/// Peano arithmetic plus 1
 pub struct Next<T = End>(T);
+/// Peano arithmetic `0`
 pub enum End {}
 
 type Next2<N = End> = Next<Next<N>>;
@@ -205,24 +209,34 @@ type PointerNext<N = End> = Next4<N>;
 #[cfg(target_pointer_width = "64")]
 type PointerNext<N = End> = Next8<N>;
 
+/// The size of a pointer
 #[cfg(target_pointer_width = "16")]
 pub type PointerSize = typenum::U2;
+/// The alignment of a pointer
 #[cfg(target_pointer_width = "16")]
 pub type PointerAlign = typenum::U2;
 
+/// The size of a pointer
 #[cfg(target_pointer_width = "32")]
 pub type PointerSize = typenum::U4;
+/// The alignment of a pointer
 #[cfg(target_pointer_width = "32")]
 pub type PointerAlign = typenum::U4;
 
+/// The size of a pointer
 #[cfg(target_pointer_width = "64")]
 pub type PointerSize = typenum::U8;
+/// The alignment of a pointer
 #[cfg(target_pointer_width = "64")]
 pub type PointerAlign = typenum::U8;
 
+/// Get the [representation](crate::Representation) of a [`Type`](crate::Type)
 pub type Repr<T> = <T as Type>::Repr;
+/// Get the [slots](crate::slots::SlotList) of a [`Type`](crate::Type)
 pub type Slots<T> = <Repr<T> as Representation>::Slots;
+/// Get the alignment of a [`Type`](crate::Type)
 pub type Align<T> = <Repr<T> as Representation>::Align;
+/// Get the size of a [`Type`](crate::Type)
 pub type Size<T> = slots::Size<Slots<T>>;
 
 /// A type which takes in in `Reinterpret`
@@ -232,6 +246,7 @@ pub type Size<T> = slots::Size<Slots<T>>;
 /// the normal validity invariants.
 // TODO: implement `TryReinterpret` to allow for other invariants
 pub unsafe trait Type {
+    /// The representation of a type
     type Repr: Representation;
 }
 
@@ -239,12 +254,19 @@ pub unsafe trait Type {
 /// fields, and how the memory layout should be computed. See 
 /// [`repr`](crate::repr) for details
 pub trait Representation {
+    /// The representation of a type
     type Slots: slots::SlotList;
+    /// The representation of a type
     type Align: typenum::marker_traits::PowerOfTwo;
 }
 
 impl<T: Type> Reinterpret for T {}
+
+/// Reinterpret a type into another type
+/// 
+/// This uses type level assertions to make sure that the types are compatible
 pub trait Reinterpret: Sized + Type {
+    /// Convert Self into another type
     #[inline(always)]
     fn reinterp_into<T>(self) -> T
     where
@@ -256,6 +278,7 @@ pub trait Reinterpret: Sized + Type {
         unsafe { core::mem::transmute_copy(&value) }
     }
 
+    /// Convert a shared reference of Self into a shared reference to another type
     #[inline(always)]
     fn reinterp_as<T>(&self) -> &T
     where
@@ -267,6 +290,7 @@ pub trait Reinterpret: Sized + Type {
         unsafe { core::mem::transmute(self) }
     }
 
+    /// Convert a unique reference of Self into a unique reference to another type
     #[inline(always)]
     fn reinterp_as_mut<T>(&mut self) -> &mut T
     where

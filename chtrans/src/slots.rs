@@ -23,11 +23,13 @@ pub type Size<L> = <L as SlotList>::Size;
 /// 
 /// see [module](crate::slots) docs for details
 pub trait Slot {
-    type Size: Unsigned;
+    /// The size of a slot, must be 0 or 1
+    type Size: Bit;
 }
 
 /// A linked list of [`Slot`](crate::slots::Slot)s
 pub trait SlotList {
+    /// The total size of all slots in the list
     type Size: Unsigned;
 }
 
@@ -74,15 +76,15 @@ pub struct Markers<T>(T);
 pub struct NonZero<N>(N);
 
 impl Slot for Init {
-    type Size = U1;
+    type Size = B1;
 }
 
 impl Slot for Uninit {
-    type Size = U1;
+    type Size = B1;
 }
 
 impl<P: MarkerList, T: Marker> Slot for Markers<Cons<P, T>> {
-    type Size = U0;
+    type Size = B0;
 }
 
 impl MarkerList for Nil {}
