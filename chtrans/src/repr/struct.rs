@@ -15,7 +15,7 @@
 //! for field in fields {
 //!     let offset = memory.len();
 //!     let padding = field.align - offset % field.align;
-//!     memory.extend(repeat(Slot::Uninit, padding));
+//!     memory.extend(repeat(Slot::Uninit, padding % field.align));
 //!     memory.extend(field.slots());
 //! }
 //! return memory;
