@@ -84,18 +84,18 @@ macro_rules! type_array {
     ($($len:ty),* $(,)?) => {$(
         unsafe impl<T: Type> Type for [T; <$len as Unsigned>::USIZE]
         where
-            crate::Slots<T>: Cycle<$len>,
-            crate::hlist::CycleL<crate::Slots<T>, $len>: SlotList
+            crate::Slots<T>: Cyclic<$len>,
+            crate::hlist::Cycle<crate::Slots<T>, $len>: SlotList
         {
             type Repr = [T::Repr; <$len as Unsigned>::USIZE];
         }
 
         impl<T: Representation> Representation for [T; <$len as Unsigned>::USIZE]
         where
-            T::Slots: Cycle<$len>,
-            <T::Slots as Cycle<$len>>::Output: SlotList,
+            T::Slots: Cyclic<$len>,
+            Cycle<T::Slots, $len>: SlotList,
         {
-            type Slots = <T::Slots as Cycle<$len>>::Output;
+            type Slots = Cycle<T::Slots, $len>;
             type Align = T::Align;
         }
     )*};

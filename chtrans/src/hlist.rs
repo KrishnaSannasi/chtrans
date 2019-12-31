@@ -51,12 +51,12 @@ where
     type Output = Cons<Appended<L, P>, T>;
 }
 
-pub type CycleL<L, N> = <L as Cycle<N>>::Output;
-pub trait Cycle<N> {
+pub type Cycle<L, N> = <L as Cyclic<N>>::Output;
+pub trait Cyclic<N> {
     type Output;
 }
 
-impl<T, N> Cycle<N> for T
+impl<T, N> Cyclic<N> for T
 where
     N: IsEqual<U0>,
     T: private::ImplCycle<N, Eq<N, U0>>,
@@ -91,10 +91,10 @@ mod private {
     impl<T, N> ImplCycle<N, B0> for T
     where
         N: Sub<U1>,
-        T: Cycle<N::Output>,
-        CycleL<T, N::Output>: Append<T>,
+        T: Cyclic<N::Output>,
+        Cycle<T, N::Output>: Append<T>,
     {
-        type ImplOutput = Appended<CycleL<T, N::Output>, T>;
+        type ImplOutput = Appended<Cycle<T, N::Output>, T>;
     }
     
     pub trait ImplPush<T, N, IsZero> {
