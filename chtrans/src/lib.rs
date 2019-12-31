@@ -112,7 +112,7 @@
 //! 
 //! `Markers<M>` stores a linked list `M`. Each `Marker` is a property of the
 //! following memory. For example, `bool`'s `Slots` looks like this:
-//! ```rust
+//! ```rust ignore
 //! HList!(Init, Markers<HList!(bool)>)
 //! ```
 //! Wait, I thought only markers could go in `Markers`. 
@@ -130,7 +130,7 @@
 //! To see this in action, let's look into an error, trying to reinterpret a `u8`
 //! to a `bool`. Here is a trace:
 //! 
-//! ```rust text
+//! ```rust ignore
 //! 0_u8.reinterp_into::<bool>();
 //! 
 //! // This will be lowered to
@@ -155,7 +155,7 @@
 //! 
 //! How about the trivial case?
 //! 
-//! ```rust text
+//! ```rust ignore
 //! false.reinterp_into::<bool>();
 //! 
 //! // This will be lowered to

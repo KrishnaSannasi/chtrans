@@ -94,7 +94,7 @@ pub trait Cyclic<N> {
 impl<T, N> Cyclic<N> for T
 where
     N: IsEqual<U0>,
-    T: private::ImplCycle<N, Eq<N, U0>>,
+    T: private::ImplCyclic<Nil, N, Eq<N, U0>>,
 {
     type Output = T::ImplOutput;
 }
@@ -123,21 +123,22 @@ where
 mod private {
     use super::*;
 
-    pub trait ImplCycle<N, IsZero> {
+    pub trait ImplCyclic<Cont, N, IsZero> {
         type ImplOutput;
     }
     
-    impl<T> ImplCycle<U0, B1> for T {
-        type ImplOutput = Nil;
+    impl<Cont, T> ImplCyclic<Cont, U0, B1> for T {
+        type ImplOutput = Cont;
     }
     
-    impl<T, N> ImplCycle<N, B0> for T
+    impl<Cont, T, N> ImplCyclic<Cont, N, B0> for T
     where
-        N: Sub<U1>,
-        T: Cyclic<N::Output>,
-        Cycle<T, N::Output>: Append<T>,
+        Cont: Append<T>,
+        N: Sub<U1> + IsEqual<U1>,
+        T: ImplCyclic<Appended<Cont, T>, Diff<N, U1>, Eq<N, U1>>,
     {
-        type ImplOutput = Appended<Cycle<T, N::Output>, T>;
+        #[allow(clippy::type_complexity)]
+        type ImplOutput = <T as ImplCyclic<Appended<Cont, T>, Diff<N, U1>, Eq<N, U1>>>::ImplOutput;
     }
     
     pub trait ImplPush<T, N, IsZero> {
