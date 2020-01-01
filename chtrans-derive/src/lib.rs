@@ -142,6 +142,9 @@ fn repr_struct(
     let attrs = SliceToTokens(&attrs);
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
+    let align = repr_attr.align.unwrap_or(1);
+    let align = syn::Ident::new(&format!("U{}", align), proc_macro2::Span::call_site());
     
     TokenStream::from(match data.fields {
         syn::Fields::Unit => quote! {
@@ -149,7 +152,7 @@ fn repr_struct(
             #[repr(C)]
             #vis struct #ident #generics;
             unsafe impl #impl_generics ::chtrans::Type for #ident #ty_generics #where_clause {
-                type Repr = ::chtrans::repr::r#struct::Struct<#repr, #repr_ty>;
+                type Repr = ::chtrans::repr::r#struct::Struct<#repr, ::chtrans::typenum::consts::#align, #repr_ty>;
             }
         },
         syn::Fields::Unnamed(fields) => quote! {
@@ -157,7 +160,7 @@ fn repr_struct(
             #[repr(C)]
             #vis struct #ident #fields #generics;
             unsafe impl #impl_generics ::chtrans::Type for #ident #ty_generics #where_clause {
-                type Repr = ::chtrans::repr::r#struct::Struct<#repr, #repr_ty>;
+                type Repr = ::chtrans::repr::r#struct::Struct<#repr, ::chtrans::typenum::consts::#align, #repr_ty>;
             }
         },
         syn::Fields::Named(fields) => quote! {
@@ -165,7 +168,7 @@ fn repr_struct(
             #[repr(C)]
             #vis struct #ident #generics #fields
             unsafe impl #impl_generics ::chtrans::Type for #ident #ty_generics #where_clause {
-                type Repr = ::chtrans::repr::r#struct::Struct<#repr, #repr_ty>;
+                type Repr = ::chtrans::repr::r#struct::Struct<#repr, ::chtrans::typenum::consts::#align, #repr_ty>;
             }
         }
     })

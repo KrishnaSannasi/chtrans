@@ -1,5 +1,5 @@
 #![no_std]
-#![forbid(missing_docs)]
+// #![forbid(missing_docs)]
 
 //! This crate is heavily inspired by [typic](https://github.com/jswrenn/typic)
 //! 
@@ -86,8 +86,9 @@
 //! use chtrans::slots::{Init, Uninit};
 //! use chtrans::repr::{ReprC, r#struct::Struct};
 //! use chtrans::Representation;
+//! use chtrans::typenum::U1;
 //! 
-//! type Repr = Struct<ReprC, Cons<Cons<Nil, i8>, u16>>;
+//! type Repr = Struct<ReprC, U1, Cons<Cons<Nil, i8>, u16>>;
 //! type Slots = Cons<Cons<Cons<Cons<Nil, Init>, Uninit>, Init>, Init>;
 //! 
 //! fn check_same_type(mut slots: Slots, repr_slots: <Repr as Representation>::Slots) {
@@ -185,7 +186,6 @@
 pub mod hlist;
 pub mod slots;
 pub mod repr;
-#[doc(hidden)]
 pub mod compat;
 mod ext;
 
