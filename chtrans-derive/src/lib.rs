@@ -119,6 +119,17 @@ impl<T: quote::ToTokens> quote::ToTokens for SliceToTokens<'_, T> {
     }
 }
 
+fn to_list<T, L: quote::ToTokens>(iter: impl IntoIterator<Item = T>, mut func: impl FnMut(T) -> L) -> proc_macro2::TokenStream {
+    iter.into_iter()
+        .fold(
+            quote!{::chtrans::hlist::Nil},
+            |rest, item| {
+                let item = func(item);
+                quote! {::chtrans::hlist::Cons<#rest, #item>}
+            },
+        )
+}
+
 fn repr_struct(
     repr_attr: Repr,
     attrs: Vec<syn::Attribute>,
@@ -127,12 +138,7 @@ fn repr_struct(
     generics: syn::Generics,
     data: syn::DataStruct,
 ) -> TokenStream {
-    let repr_ty = data.fields.iter()
-    .map(|field| &field.ty)
-    .fold(
-        quote!{::chtrans::hlist::Nil},
-        |rest, field| quote! {::chtrans::hlist::Cons<#rest, #field>},
-    );
+    let repr_ty = to_list(&data.fields, |field| &field.ty);
 
     let repr = match repr_attr.ty {
         Type::ReprC => quote!{::chtrans::repr::ReprC},
@@ -143,9 +149,44 @@ fn repr_struct(
 
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
+    let mut where_clause = where_clause.cloned()
+        .unwrap_or(syn::WhereClause {
+            where_token: syn::Token![where](proc_macro2::Span::call_site()),
+            predicates: Default::default()
+        });
+
+    for field in data.fields.iter() {
+        let ty = &field.ty;
+        where_clause.predicates.push(syn::WherePredicate::Type(
+            syn::PredicateType {
+                lifetimes: None,
+                bounded_ty: field.ty.clone(),
+                colon_token: syn::Token![:](proc_macro2::Span::call_site()),
+                bounds: syn::parse_quote! {
+                    ::chtrans::Type
+                },
+            }
+        ))
+    }
+
     let align = repr_attr.align.unwrap_or(1);
     let align = syn::Ident::new(&format!("U{}", align), proc_macro2::Span::call_site());
     
+    let struct_repr_ty = syn::parse_quote! {
+        ::chtrans::repr::r#struct::Struct<#repr, ::chtrans::typenum::consts::#align, #repr_ty>
+    };
+
+    where_clause.predicates.push(syn::WherePredicate::Type(
+        syn::PredicateType {
+            lifetimes: None,
+            bounded_ty: struct_repr_ty,
+            colon_token: syn::Token![:](proc_macro2::Span::call_site()),
+            bounds: syn::parse_quote! {
+                ::chtrans::Representation
+            },
+        }
+    ));
+
     TokenStream::from(match data.fields {
         syn::Fields::Unit => quote! {
             #attrs
@@ -184,3 +225,4 @@ fn repr_union(
 ) -> TokenStream {
     todo!("unions are not suppported yet")
 }
+
